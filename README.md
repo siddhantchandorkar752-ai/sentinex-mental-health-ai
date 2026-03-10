@@ -1,38 +1,32 @@
-﻿---
-title: Sentinex Mental Health AI
-emoji: 🧠
-colorFrom: red
-colorTo: orange
-sdk: docker
-pinned: false
----
+
 
 <div align="center">
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:FF0000,50:FF6B00,100:FFD700&height=200&section=header&text=SENTINEX&fontSize=80&fontColor=ffffff&fontAlignY=35&desc=Mental%20Health%20Intelligence%20AI&descAlignY=60&descSize=22&animation=fadeIn" width="100%"/>
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:87CEEB,50:B0E0E6,100:FFFDD0&height=200&section=header&text=SENTINEX&fontSize=80&fontColor=1a1a2e&fontAlignY=35&desc=Mental%20Health%20Intelligence%20AI&descAlignY=60&descSize=22&animation=fadeIn" width="100%"/>
 
 <br/>
 
-[![Typing SVG](https://readme-typing-svg.demolab.com?font=Orbitron&weight=900&size=28&duration=3000&pause=800&color=FF4500&center=true&vCenter=true&multiline=true&width=700&height=100&lines=🧠+Emotion+Detection+%7C+Risk+Scoring;🎭+Sarcasm+Intelligence+%7C+NLP+AI;🔴+CRITICAL+to+🟢+LOW+—+Real+Time)](https://git.io/typing-svg)
+[![Typing SVG](https://readme-typing-svg.demolab.com?font=Orbitron&weight=900&size=28&duration=3000&pause=800&color=1E90FF&center=true&vCenter=true&multiline=true&width=700&height=100&lines=🧠+Emotion+Detection+%7C+Risk+Scoring;🎭+Sarcasm+Intelligence+%7C+NLP+AI;🔴+CRITICAL+to+🟢+LOW+—+Real+Time)](https://git.io/typing-svg)
 
 <br/>
 
-![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![HuggingFace](https://img.shields.io/badge/🤗_HuggingFace-Transformers-FFD21E?style=for-the-badge)
-![Gradio](https://img.shields.io/badge/Gradio-UI-FF7C00?style=for-the-badge&logo=gradio&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.11-87CEEB?style=for-the-badge&logo=python&logoColor=white)
+![HuggingFace](https://img.shields.io/badge/🤗_HuggingFace-Transformers-FFFDD0?style=for-the-badge&logoColor=black)
+![Gradio](https://img.shields.io/badge/Gradio-UI-87CEEB?style=for-the-badge&logo=gradio&logoColor=white)
 ![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+![License](https://img.shields.io/badge/License-MIT-B0E0E6?style=for-the-badge)
 
 <br/>
 
-> **🚨 The AI that reads between the lines — detecting hidden pain, masked depression, and silent cries for help.**
+> **🧠 The AI that reads between the lines — detecting hidden pain, masked depression, and silent cries for help.**
 
 </div>
 
 ---
 
 ## 🔥 WHAT IS SENTINEX?
+
 ```
 ╔══════════════════════════════════════════════════════════════════════╗
 ║     SENTINEX — Mental Health Intelligence System v2.0               ║
@@ -49,6 +43,7 @@ SENTINEX is an advanced **NLP-powered Mental Health Analysis AI** that goes beyo
 ## 😔 PROBLEM STATEMENT
 
 Most sentiment analysis tools fail at detecting **masked depression** — when someone says *"I'm fine"* but isn't. Traditional NLP misses:
+
 - Sarcasm hiding real pain (*"Best week ever!"* after losing a job)
 - Hidden psychological distress markers (*"cry myself to sleep"*)
 - Gradual mood deterioration over a conversation
@@ -72,6 +67,7 @@ Most sentiment analysis tools fail at detecting **masked depression** — when s
 ---
 
 ## 🚨 RISK LEVEL SYSTEM
+
 ```
 🟢  LOW      Score: 0.00 – 0.30   "You seem to be doing well. Keep it up!"
 🟡  MODERATE Score: 0.30 – 0.55   "Some stress detected. Talk to someone."
@@ -82,6 +78,7 @@ Most sentiment analysis tools fail at detecting **masked depression** — when s
 ---
 
 ## 🧠 ARCHITECTURE
+
 ```
 INPUT TEXT
     │
@@ -121,6 +118,7 @@ INPUT TEXT
 ---
 
 ## 📁 PROJECT STRUCTURE
+
 ```
 sentinex/
 ├── app.py                  ← Gradio web interface
@@ -163,7 +161,7 @@ source venv/bin/activate
 pip install transformers torch gradio scipy
 ```
 
-> ⚠️ First run will download ~1.5GB of models from HuggingFace automatically.
+> ⚠️ First run will automatically download ~1.5GB of models from HuggingFace.
 
 ---
 
@@ -181,26 +179,27 @@ docker build -t sentinex .
 docker run -p 7860:7860 sentinex
 ```
 
-### Use Online (No Install)
+### Use Online (No Install Required)
 🔗 **https://huggingface.co/spaces/siddhantchandorkar/sentinex-mental-health-ai**
 
 ---
 
 ## 🧪 EXAMPLE OUTPUT
+
 ```
 Input:  "I finally got everything I wanted. Nice house, good job.
          So why do I still cry myself to sleep every night?"
 
 Output:
-  Emotion:     NEUTRAL 45% | JOY 29%
-  Sentiment:   POSITIVE (0.91) — surface level
-  Sarcasm:     Not detected
+  Emotion:       NEUTRAL 45% | JOY 29%
+  Sentiment:     POSITIVE (0.91) — surface level positive
+  Sarcasm:       Not detected
   Psych Markers:
-    • SLEEP: "cry myself to sleep"
+    • SLEEP:     "cry myself to sleep"
     • PESSIMISM: "why do i still"
-  Risk Score:  0.567 / 1.0
-  Risk Level:  🟠 HIGH
-  Advice:      High distress detected. Please talk to a counselor.
+  Risk Score:    0.567 / 1.0
+  Risk Level:    🟠 HIGH
+  Advice:        High distress detected. Please talk to a counselor.
 ```
 
 ---
@@ -235,27 +234,21 @@ Output:
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)
 ![HuggingFace](https://img.shields.io/badge/Transformers-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black)
-![Gradio](https://img.shields.io/badge/Gradio-FF7C00?style=for-the-badge)
+![Gradio](https://img.shields.io/badge/Gradio-87CEEB?style=for-the-badge)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
-![NLP](https://img.shields.io/badge/NLP-RoBERTa-blueviolet?style=for-the-badge)
+![NLP](https://img.shields.io/badge/NLP-RoBERTa-87CEEB?style=for-the-badge)
 
 ---
 
 ## 🤝 CONTRIBUTING
 
 Contributions are welcome!
+
 ```bash
-# Fork the repo
-# Create your branch
 git checkout -b feature/AmazingFeature
-
-# Commit changes
 git commit -m 'Add AmazingFeature'
-
-# Push
 git push origin feature/AmazingFeature
-
-# Open Pull Request
+# Then open a Pull Request
 ```
 
 ---
@@ -270,12 +263,14 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 <div align="center">
 
-<img src="https://capsule-render.vercel.app/api?type=rect&color=0:FF0000,100:FFD700&height=60&text=Siddhant%20Chandorkar&fontSize=28&fontColor=ffffff&fontAlign=50&fontAlignY=50" width="500"/>
+<img src="https://capsule-render.vercel.app/api?type=rect&color=0:87CEEB,100:FFFDD0&height=60&text=Siddhant%20Chandorkar&fontSize=28&fontColor=1a1a2e&fontAlign=50&fontAlignY=50" width="500"/>
 
 <br/><br/>
 
 [![GitHub](https://img.shields.io/badge/GitHub-siddhantchandorkar752--ai-181717?style=for-the-badge&logo=github)](https://github.com/siddhantchandorkar752-ai)
-[![HuggingFace](https://img.shields.io/badge/🤗-siddhantchandorkar-FFD21E?style=for-the-badge)](https://huggingface.co/siddhantchandorkar)
+[![HuggingFace](https://img.shields.io/badge/🤗-siddhantchandorkar-FFFDD0?style=for-the-badge&logoColor=black)](https://huggingface.co/siddhantchandorkar)
+
+<br/>
 
 *"I don't just build AI. I build AI that understands humans."*
 
@@ -288,5 +283,5 @@ Distributed under the MIT License. See `LICENSE` for more information.
 > 🇮🇳 **iCall India:** 9152987821 | **Vandrevala Foundation:** 1860-2662-345
 
 <div align="center">
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:FFD700,50:FF6B00,100:FF0000&height=120&section=footer&text=SENTINEX%20v2.0&fontSize=30&fontColor=ffffff&fontAlignY=65&animation=fadeIn" width="100%"/>
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:FFFDD0,50:B0E0E6,100:87CEEB&height=120&section=footer&text=SENTINEX%20v2.0&fontSize=30&fontColor=1a1a2e&fontAlignY=65&animation=fadeIn" width="100%"/>
 </div>
