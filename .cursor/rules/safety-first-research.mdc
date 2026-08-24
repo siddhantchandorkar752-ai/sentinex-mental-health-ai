@@ -1,0 +1,23 @@
+---
+description: Evidence, safety, and privacy rules for every SENTINEX change
+alwaysApply: true
+---
+
+# SENTINEX engineering contract
+
+- Keep SENTINEX explicitly non-clinical. Do not add diagnosis, crisis prediction, risk tiers,
+  treatment advice, or claims that the system can determine whether a person is safe.
+- Label synthetic, model-derived, inferred, unverified, and blocked outputs accurately.
+- Require benchmark evidence before making accuracy, fairness, or clinical-validity claims.
+- Keep submitted text session-local. Never place raw user text in global state, logs, analytics,
+  persisted history, reports, fixtures, or exception messages.
+- Use per-session state for aggregates and cap retained session entries.
+- Keep model loading lazy, pin model revisions, reject unexpected label semantics, and keep
+  remote model code disabled.
+- Tests must be offline and must use fake model adapters; never download weights or use live keys.
+- Keep the safety notice visible and point to official resources without inventing or copying
+  unverified phone numbers.
+- Treat literal phrase matches as lexical observations only. State that they cannot understand
+  negation, quotation, context, intent, or sarcasm.
+- Preserve the import-safe application boundary: importing `app` must not launch a server or
+  initialize optional model backends.

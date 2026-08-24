@@ -1,139 +1,389 @@
-﻿import gradio as gr
-import numpy as np
-from models.analyzer import SentinexAnalyzer
+"""Gradio interface for the SENTINEX language-signal research workbench."""
 
-analyzer = SentinexAnalyzer()
+from __future__ import annotations
 
-def analyze_text(text):
-    if not text or len(text.strip()) < 5:
-        return "Please enter at least a sentence.", "", "", ""
+import os
+from collections.abc import Mapping, Sequence
+from functools import lru_cache
+from typing import Any
 
-    result = analyzer.analyze(text)
+import gradio as gr
 
-    # Emotion bars
-    emotion_html = "<div style='font-family:monospace;padding:10px'>"
-    for em in result["emotions"]:
-        pct   = int(em["score"] * 100)
-        label = em["label"].upper()
-        color = {
-            "joy":      "#00ff9f",
-            "sadness":  "#4488ff",
-            "anger":    "#ff4444",
-            "fear":     "#ff8800",
-            "surprise": "#ffff00",
-            "disgust":  "#aa44ff",
-            "neutral":  "#888888"
-        }.get(em["label"].lower(), "#888888")
-        emotion_html += f"""
-        <div style='margin:6px 0'>
-            <span style='color:{color};width:110px;display:inline-block;font-weight:bold'>{label}</span>
-            <div style='display:inline-block;background:{color};width:{pct*3}px;height:16px;border-radius:4px;vertical-align:middle'></div>
-            <span style='color:#ccc;margin-left:8px'>{pct}%</span>
-        </div>"""
-    emotion_html += "</div>"
+from models.analyzer import (
+    LIMITATIONS,
+    MAX_INPUT_CHARACTERS,
+    SAFETY_NOTICE,
+    AnalysisResult,
+    SentinexAnalyzer,
+    build_analyzer,
+)
 
-    # Sarcasm + psych markers
-    sarcasm_color = "#ff4444" if result["is_sarcasm"] else "#00ff9f"
-    sarcasm_text  = f"⚠️ SARCASM DETECTED ({result['sarcasm_conf']:.0%})" if result["is_sarcasm"] else f"✅ No Sarcasm ({result['sarcasm_conf']:.0%})"
+APP_CSS = """
+html, body, gradio-app {
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+}
+.gradio-container {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 1180px !important;
+    margin: 0 auto !important;
+    padding: 28px 22px 48px !important;
+    background:
+        radial-gradient(circle at 8% 0%, rgba(20, 184, 166, 0.12), transparent 32rem),
+        radial-gradient(circle at 96% 18%, rgba(14, 165, 233, 0.10), transparent 28rem);
+}
+.sentinex-hero {
+    padding: 28px 30px 26px;
+    border: 1px solid rgba(45, 212, 191, 0.28);
+    border-radius: 24px;
+    background: linear-gradient(135deg, rgba(15, 118, 110, 0.15), rgba(2, 132, 199, 0.08));
+    box-shadow: 0 18px 60px rgba(2, 8, 23, 0.16);
+}
+.sentinex-hero h1 {
+    margin: 0 0 6px !important;
+    letter-spacing: -0.045em;
+    font-size: clamp(2.5rem, 7vw, 4.75rem) !important;
+    line-height: 0.95 !important;
+}
+.sentinex-hero h3 {
+    margin: 12px 0 16px !important;
+    color: var(--body-text-color-subdued);
+}
+.sentinex-eyebrow code {
+    display: inline-block;
+    margin: 0 6px 6px 0;
+    padding: 5px 10px;
+    border: 1px solid rgba(45, 212, 191, 0.34);
+    border-radius: 999px;
+    background: rgba(13, 148, 136, 0.10);
+    color: rgb(45, 212, 191);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+}
+.sentinex-safety {
+    margin: 14px 0 18px;
+    padding: 4px 18px;
+    border-left: 4px solid rgb(245, 158, 11);
+    border-radius: 12px;
+    background: rgba(245, 158, 11, 0.08);
+}
+.sentinex-workspace {
+    gap: 18px !important;
+    align-items: stretch !important;
+}
+.sentinex-panel {
+    padding: 14px;
+    border: 1px solid var(--border-color-primary);
+    border-radius: 18px;
+    background: var(--background-fill-secondary);
+    box-shadow: 0 10px 35px rgba(2, 8, 23, 0.10);
+}
+.sentinex-primary button {
+    min-height: 48px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+.sentinex-tabs {
+    margin-top: 18px;
+    border: 1px solid var(--border-color-primary);
+    border-radius: 18px;
+    overflow: hidden;
+    background: var(--background-fill-secondary);
+}
+.sentinex-limitations {
+    margin-top: 18px;
+    padding: 18px 22px;
+    border-radius: 16px;
+    background: rgba(100, 116, 139, 0.08);
+}
+@media (max-width: 700px) {
+    .gradio-container {
+        width: 100vw !important;
+        max-width: 100vw !important;
+        min-width: 0 !important;
+        padding: 14px 12px 30px !important;
+        box-sizing: border-box !important;
+    }
+    .gradio-container .main {
+        width: 100% !important;
+        min-width: 0 !important;
+        padding: 10px 8px !important;
+        box-sizing: border-box !important;
+    }
+    .gradio-container .contain,
+    .gradio-container .wrap,
+    .gradio-container .column,
+    .gradio-container .row,
+    .gradio-container .tabs,
+    .gradio-container .tab-wrapper,
+    .gradio-container .tab-container,
+    .gradio-container .tabitem {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    .sentinex-workspace {
+        flex-direction: column !important;
+    }
+    .sentinex-workspace > * {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+    .sentinex-hero { padding: 22px 18px; border-radius: 18px; }
+    .sentinex-panel { padding: 8px; }
+    .tabs > .tab-nav {
+        overflow-x: auto !important;
+        scrollbar-width: thin;
+    }
+}
+"""
 
-    psych_html = ""
-    if result["psych_markers"]:
-        psych_html = "<div style='margin-top:10px;padding:8px;background:#1a1a1a;border-radius:8px'>"
-        psych_html += "<p style='color:#ff8800;margin:0 0 6px 0'>⚠️ Psychological Markers Detected:</p>"
-        for marker, keywords in result["psych_markers"].items():
-            psych_html += f"<p style='color:#ffaa44;margin:2px 0'>• {marker.upper()}: {', '.join(keywords)}</p>"
-        psych_html += "</div>"
 
-    # Risk panel
-    risk_color = {
-        "🟢 LOW":      "#00ff9f",
-        "🟡 MODERATE": "#ffaa00",
-        "🟠 HIGH":     "#ff6600",
-        "🔴 CRITICAL": "#ff0000"
-    }.get(result["risk_level"], "#888")
+@lru_cache(maxsize=1)
+def get_analyzer() -> SentinexAnalyzer:
+    """Load the configured backend once, only after the first analysis request."""
 
-    risk_html = f"""
-    <div style='background:#111;padding:20px;border-radius:12px;border:2px solid {risk_color}'>
-        <h2 style='color:{risk_color};margin:0'>Risk Level: {result["risk_level"]}</h2>
-        <h3 style='color:#ccc'>Score: {result["risk_score"]:.3f} / 1.0</h3>
-        <p style='color:#aaa'>Sentiment: <b style='color:{risk_color}'>{result["sentiment"]["label"].upper()}</b> ({result["sentiment"]["score"]:.2f})</p>
-        <p style='color:{sarcasm_color}'>{sarcasm_text}</p>
-        {psych_html}
-        <div style='background:#222;padding:12px;border-radius:8px;margin-top:10px'>
-            <p style='color:#fff;margin:0'>💡 {result["advice"]}</p>
-        </div>
-    </div>"""
+    return build_analyzer()
 
-    # Mood history
-    history_html = "<div style='font-family:monospace;padding:10px'>"
-    history_html += "<p style='color:#00d9ff;margin:0 0 8px 0'>📈 Session Mood History:</p>"
-    if result["context_history"]:
-        for i, h in enumerate(reversed(result["context_history"][-5:])):
-            r = h["risk"]
-            c = "#00ff9f" if r < 0.3 else "#ffaa00" if r < 0.55 else "#ff4444"
-            bar = "█" * int(r * 20)
-            history_html += f"<div style='color:{c};margin:3px 0'>[{len(result['context_history'])-i}] {bar} {r:.2f} — {h['emotion'].upper()}</div>"
-    else:
-        history_html += "<p style='color:#555'>No history yet</p>"
-    history_html += "</div>"
 
-    report = f"""SENTINEX v2 — Mental Health Analysis
-{'='*45}
-Risk Level    : {result["risk_level"]}
-Risk Score    : {result["risk_score"]:.3f} / 1.0
-Sentiment     : {result["sentiment"]["label"].upper()} ({result["sentiment"]["score"]:.2f})
-Sarcasm       : {"YES ⚠️" if result["is_sarcasm"] else "NO ✅"}
+def _history_rows(result: AnalysisResult) -> list[list[str | int | float]]:
+    return [
+        [
+            index,
+            entry.top_emotion_label,
+            round(entry.top_emotion_score, 4),
+            entry.sentiment_label,
+            round(entry.sentiment_score, 4),
+            entry.lexical_category_count,
+            entry.execution_mode,
+        ]
+        for index, entry in enumerate(result.history, start=1)
+    ]
 
-Top Emotions:
-{chr(10).join([f"  {e['label'].upper():<12} {int(e['score']*100)}%" for e in result["emotions"][:4]])}
 
-Psychological Markers:
-{chr(10).join([f"  • {m.upper()}: {', '.join(kw)}" for m,kw in result["psych_markers"].items()]) if result["psych_markers"] else "  None detected"}
+def analyze_text(
+    text: str,
+    history: Sequence[Mapping[str, Any]] | None,
+    analyzer: SentinexAnalyzer | None = None,
+) -> tuple[
+    str,
+    list[list[str | float]],
+    list[list[str | float]],
+    list[dict[str, str | list[str]]],
+    list[list[str | int | float]],
+    dict[str, Any],
+    list[dict[str, str | int | float]],
+]:
+    """Analyze text without returning or retaining the submitted text."""
 
-Advice: {result["advice"]}
-{'='*45}
-⚠️ Not a medical diagnosis. Consult a professional."""
+    active_analyzer = analyzer or get_analyzer()
+    try:
+        result = active_analyzer.analyze(text, history)
+    except (TypeError, ValueError) as error:
+        raise gr.Error(str(error)) from error
 
-    return emotion_html, risk_html, history_html, report
-
-with gr.Blocks(title="SENTINEX — Mental Health AI") as demo:
-    gr.HTML("""
-    <div style='text-align:center;padding:24px;background:linear-gradient(135deg,#0f0f1a,#1a1a2e);border-radius:14px;margin-bottom:20px'>
-        <h1 style='color:#00ff9f;font-size:2.8em;margin:0'>🧠 SENTINEX v2</h1>
-        <p style='color:#888;font-size:1.1em'>Mental Health Intelligence — Emotion + Sarcasm + Risk + Context Memory</p>
-        <p style='color:#555'>Built by Siddhant Chandorkar</p>
-    </div>
-    """)
-    with gr.Row():
-        with gr.Column(scale=1):
-            text_input = gr.Textbox(
-                label="Enter your thoughts, diary entry, or any text",
-                placeholder="e.g. I have been feeling really low lately...",
-                lines=6
-            )
-            analyze_btn = gr.Button("🔍 Analyze Mental State", variant="primary")
-            gr.Examples(
-                examples=[
-                    ["Wow today was fantastic. I failed my exam, lost my wallet and laptop crashed. Couldn't have asked for a better day."],
-                    ["I feel so hopeless and empty. I don't see the point of anything anymore."],
-                    ["Today was amazing! I got the job offer and my family is so proud of me!"],
-                    ["I am really stressed about exams. I can't sleep and keep overthinking everything."],
-                    ["Nobody cares about me. I feel completely alone and it's all my fault."]
-                ],
-                inputs=text_input
-            )
-        with gr.Column(scale=1):
-            emotion_output  = gr.HTML(label="Emotion Analysis")
-            risk_output     = gr.HTML(label="Risk Assessment")
-            history_output  = gr.HTML(label="Mood History")
-
-    report_output = gr.Textbox(label="Full Report", lines=12)
-
-    analyze_btn.click(
-        analyze_text,
-        inputs=text_input,
-        outputs=[emotion_output, risk_output, history_output, report_output]
+    mode_note = (
+        "Synthetic demo output — useful for testing the interface, not language meaning."
+        if result.evidence_status == "synthetic"
+        else (
+            "Pinned model output — labels are non-clinical and have not been validated "
+            "for safety decisions."
+        )
     )
-    gr.HTML("<div style='text-align:center;color:#444;padding:10px'>⚠️ SENTINEX is not a substitute for professional mental health advice. If you are in crisis, please call a helpline.</div>")
+    status = (
+        f"**Mode:** `{result.execution_mode.value}` · "
+        f"**Evidence:** `{result.evidence_status}`  \n{mode_note}"
+    )
+    emotions = [[item.label, round(item.score, 6)] for item in result.emotions]
+    sentiments = [[item.label, round(item.score, 6)] for item in result.sentiments]
+    lexical = [item.to_mapping() for item in result.lexical_signals]
+    report = {
+        "execution_mode": result.execution_mode.value,
+        "evidence_status": result.evidence_status,
+        "top_emotion_label": result.top_emotion.label,
+        "top_sentiment_label": result.top_sentiment.label,
+        "literal_match_category_count": len(result.lexical_signals),
+        "backend_details": dict(result.backend_details),
+        "limitations": list(result.limitations),
+    }
+    state = [entry.to_mapping() for entry in result.history]
+    return (
+        status,
+        emotions,
+        sentiments,
+        lexical,
+        _history_rows(result),
+        report,
+        state,
+    )
 
-demo.launch(server_name="0.0.0.0", server_port=7860)
+
+ClearResult = tuple[
+    str,
+    str,
+    list[Any],
+    list[Any],
+    list[Any],
+    list[Any],
+    dict[Any, Any],
+    list[Any],
+]
+
+
+def clear_session() -> ClearResult:
+    """Clear submitted text, user-visible aggregates, and per-session state."""
+
+    return (
+        "",
+        "Session aggregates cleared.",
+        [],
+        [],
+        [],
+        [],
+        {},
+        [],
+    )
+
+
+def build_app() -> gr.Blocks:
+    """Construct the UI without loading or downloading model weights."""
+
+    with gr.Blocks(
+        title="SENTINEX · Language-Signal Research Workbench",
+        fill_width=True,
+    ) as demo:
+        gr.Markdown(
+            """
+            # SENTINEX
+            ### A transparent, non-clinical language-signal research workbench
+
+            SENTINEX displays emotion/sentiment classifier labels and literal phrase matches.
+            It does **not** diagnose a condition, detect hidden intent, assess crisis risk, or
+            determine whether a person is safe.
+            """,
+            elem_classes=["sentinex-hero"],
+        )
+        gr.Markdown(
+            "`NON-CLINICAL` `SESSION-ISOLATED` `EVIDENCE-LABELED` `OFFLINE BY DEFAULT`",
+            elem_classes=["sentinex-eyebrow"],
+        )
+        gr.Markdown(
+            f"**Safety note:** {SAFETY_NOTICE}",
+            elem_classes=["sentinex-safety"],
+        )
+
+        session_history = gr.State(value=[])
+        with gr.Row(elem_classes=["sentinex-workspace"]):
+            with gr.Column(scale=5, elem_classes=["sentinex-panel"]):
+                text_input = gr.Textbox(
+                    label="Text to inspect",
+                    placeholder=(
+                        "Enter at least five characters. Submitted text is not stored in "
+                        "session history."
+                    ),
+                    lines=7,
+                    max_length=MAX_INPUT_CHARACTERS,
+                )
+                with gr.Row(elem_classes=["sentinex-primary"]):
+                    analyze_button = gr.Button(
+                        "Inspect language signals",
+                        variant="primary",
+                    )
+                    clear_button = gr.Button("Clear session")
+            with gr.Column(scale=4, elem_classes=["sentinex-panel"]):
+                status_output = gr.Markdown("No analysis has run in this session.")
+                gr.Markdown(
+                    "**Interpretation boundary:** a high model score is confidence in a "
+                    "model label, "
+                    "not severity, probability of a condition, or a safety measurement."
+                )
+
+        with gr.Tab("Classifier labels", elem_classes=["sentinex-tabs"]), gr.Row():
+            emotion_output = gr.Dataframe(
+                headers=["emotion label", "model score"],
+                datatype=["str", "number"],
+                interactive=False,
+                label="Emotion distribution",
+            )
+            sentiment_output = gr.Dataframe(
+                headers=["sentiment label", "model score"],
+                datatype=["str", "number"],
+                interactive=False,
+                label="Sentiment distribution",
+            )
+        with gr.Tab("Literal matches"):
+            gr.Markdown(
+                "These are case-insensitive, whole-phrase matches. They do not understand "
+                "negation, quotations, context, intent, or sarcasm."
+            )
+            lexical_output = gr.JSON(label="Matched wording categories")
+        with gr.Tab("Session aggregates"):
+            gr.Markdown(
+                "Only labels, scores, match counts, and execution mode are retained in this "
+                "browser session (maximum 10 rows). Raw submitted text is not retained here."
+            )
+            history_output = gr.Dataframe(
+                headers=[
+                    "entry",
+                    "top emotion",
+                    "emotion score",
+                    "sentiment",
+                    "sentiment score",
+                    "match categories",
+                    "mode",
+                ],
+                datatype=["number", "str", "number", "str", "number", "number", "str"],
+                interactive=False,
+                label="Per-session aggregate history",
+            )
+        with gr.Tab("Machine-readable report"):
+            report_output = gr.JSON(label="Analysis metadata (submitted text excluded)")
+
+        gr.Markdown(
+            "#### Known limitations\n" + "\n".join(f"- {item}" for item in LIMITATIONS),
+            elem_classes=["sentinex-limitations"],
+        )
+
+        outputs = [
+            status_output,
+            emotion_output,
+            sentiment_output,
+            lexical_output,
+            history_output,
+            report_output,
+            session_history,
+        ]
+        analyze_button.click(
+            fn=analyze_text,
+            inputs=[text_input, session_history],
+            outputs=outputs,
+        )
+        clear_button.click(
+            fn=clear_session,
+            inputs=None,
+            outputs=[text_input, *outputs],
+        )
+
+    return demo
+
+
+def main() -> None:
+    host = os.getenv("SENTINEX_HOST", "127.0.0.1")
+    theme = gr.themes.Soft(
+        primary_hue="teal",
+        secondary_hue="sky",
+        neutral_hue="slate",
+        radius_size="lg",
+    )
+    build_app().launch(
+        server_name=host,
+        server_port=7860,
+        theme=theme,
+        css=APP_CSS,
+    )
+
+
+if __name__ == "__main__":
+    main()

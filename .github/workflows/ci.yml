@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade "pip==26.2.1" "setuptools==84.0.0"
+          python -m pip install -e ".[ui,dev]"
+      - name: Static checks
+        run: |
+          python -m ruff format --check .
+          python -m ruff check .
+          python -m compileall -q -f app.py models tests
+      - name: Offline tests
+        env:
+          SENTINEX_MODE: demo
+        run: python -m pytest
+      - name: Dependency consistency
+        run: python -m pip check
+
+  security:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Audit installed application dependencies
+        run: |
+          python -m pip install --upgrade "pip==26.2.1" "setuptools==84.0.0"
+          python -m pip install -e ".[ui,security]"
+          python -m pip_audit --local --skip-editable
+          printf '%s\n' \
+            'gradio==6.25.0' \
+            'torch==2.13.0' \
+            'transformers==5.15.1' \
+            > /tmp/sentinex-optional-requirements.txt
+          python -m pip_audit --requirement /tmp/sentinex-optional-requirements.txt
+
+  package:
+    name: Source-only wheel
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Build and inspect wheel
+        run: |
+          python -m pip install --upgrade "pip==26.2.1" "setuptools==84.0.0"
+          python -m pip wheel --no-deps --wheel-dir dist .
+          python - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+
+          wheel = next(Path("dist").glob("*.whl"))
+          with ZipFile(wheel) as archive:
+              names = archive.namelist()
+          assert "app.py" in names
+          assert "models/analyzer.py" in names
+          assert not any(name.endswith((".pyc", ".pyo")) for name in names)
+          print(f"verified {wheel.name}: {len(names)} source-only entries")
+          PY

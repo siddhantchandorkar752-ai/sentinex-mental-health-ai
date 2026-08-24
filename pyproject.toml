@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools==84.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sentinex-language-signals"
+version = "3.0.0"
+description = "A session-isolated, non-clinical language-signal research workbench"
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+license = "MIT"
+authors = [{ name = "Siddhant Chandorkar" }]
+dependencies = []
+
+[project.optional-dependencies]
+ui = ["gradio==6.25.0"]
+models = ["torch==2.13.0", "transformers==5.15.1"]
+dev = ["pytest==9.0.3", "ruff==0.16.4"]
+security = ["pip-audit==2.10.1"]
+
+[tool.setuptools]
+py-modules = ["app"]
+
+[tool.setuptools.packages.find]
+include = ["models"]
+namespaces = false
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+extend-exclude = ["venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "S"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S101"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]

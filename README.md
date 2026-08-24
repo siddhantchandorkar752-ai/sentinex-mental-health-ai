@@ -1,327 +1,144 @@
+# SENTINEX
 
-<div align="center">
+> A session-isolated, non-clinical workbench for inspecting language-model labels and literal
+> phrase matches.
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:87CEEB,50:B0E0E6,100:FFFDD0&height=220&section=header&text=SENTINEX&fontSize=85&fontColor=1a1a2e&fontAlignY=35&desc=Mental%20Health%20Intelligence%20AI%20v2.0&descAlignY=60&descSize=20&animation=fadeIn" width="100%"/>
+[![CI](https://github.com/siddhantchandorkar752-ai/sentinex-mental-health-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/siddhantchandorkar752-ai/sentinex-mental-health-ai/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/Python-3.11--3.13-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-<br/>
+SENTINEX shows what a classifier returned while making the interpretation boundary visible. It
+does **not** diagnose a condition, detect hidden intent, assess crisis risk, recommend treatment,
+or determine whether a person is safe.
 
-[![Typing SVG](https://readme-typing-svg.demolab.com?font=Orbitron&weight=900&size=24&duration=3000&pause=800&color=1E90FF&center=true&vCenter=true&multiline=true&width=750&height=120&lines=🧠+Emotion+Detection+%7C+Risk+Scoring;🎭+Sarcasm+Intelligence+%7C+NLP+AI;🔴+CRITICAL+to+🟢+LOW+—+Real+Time;Built+with+3+Transformer+Models)](https://git.io/typing-svg)
+[Open the Hugging Face Space](https://huggingface.co/spaces/siddhantchandorkar/sentinex-mental-health-ai)
+(the Space may sleep when idle). The default deployment runs the synthetic demo backend; it is a
+UI and data-flow demonstration, not an AI accuracy demonstration.
 
-<br/>
+## What is verified
 
-![Python](https://img.shields.io/badge/Python-3.11-87CEEB?style=for-the-badge&logo=python&logoColor=white)
-![HuggingFace](https://img.shields.io/badge/HuggingFace-Transformers-FFFACD?style=for-the-badge&logo=huggingface&logoColor=black)
-![Gradio](https://img.shields.io/badge/Gradio-UI-87CEEB?style=for-the-badge&logo=gradio&logoColor=white)
-![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-B0E0E6?style=for-the-badge)
+- **VERIFIED — deterministic demo:** the default backend is offline, input-dependent, and
+  reproducible. Its distributions are synthetic and have no semantic meaning.
+- **VERIFIED — session isolation:** each browser session owns its aggregate history. Raw submitted
+  text is excluded from that state and from the machine-readable report.
+- **VERIFIED — bounded retention:** at most 10 aggregate entries are kept in session state.
+- **VERIFIED — transparent lexical rules:** exact categories and literal phrases live in
+  [`models/analyzer.py`](models/analyzer.py). Whole-phrase boundaries are tested.
+- **VERIFIED — pinned adapters:** optional emotion and sentiment backends use immutable Hugging
+  Face model revisions and reject unknown label schemas. Remote model code is disabled.
+- **VERIFIED — offline test suite:** model adapters are tested with fakes; CI downloads no model
+  weights and uses no credentials.
+- **UNVERIFIED — model quality:** this project contains no benchmark establishing accuracy,
+  fairness, robustness, crisis detection, or clinical validity.
 
-<br/>
+## Safety boundary
 
-> **🧠 The AI that reads between the lines — detecting hidden pain, masked depression, and silent cries for help.**
+Classifier confidence is confidence in a model label. It is not symptom severity, the probability
+of a diagnosis, or a safety measurement. Literal phrase matching cannot understand negation,
+quotation, context, intent, or sarcasm.
 
-<br/>
+SENTINEX cannot determine whether anyone is safe. If you may act on thoughts of self-harm or
+someone is in immediate danger, contact local emergency services now. In India, use the Ministry
+of Health and Family Welfare's official [Tele-MANAS website](https://telemanas.mohfw.gov.in/).
+No phone number is copied here because operational contact details should come from the current
+official source.
 
-[![Live Demo](https://img.shields.io/badge/🚀_LIVE_DEMO-HuggingFace_Space-FFD700?style=for-the-badge)](https://huggingface.co/spaces/siddhantchandorkar/sentinex-mental-health-ai)
-[![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/siddhantchandorkar752-ai/sentinex-mental-health-ai)
+Do not submit private health information, identifying data, or emergency information. The app
+does not intentionally persist text, but its hosting platform and network path have independent
+policies.
 
-</div>
+## Architecture
 
----
-
-## 🔥 WHAT IS SENTINEX?
-
-```
-╔══════════════════════════════════════════════════════════════════════╗
-║     SENTINEX — Mental Health Intelligence System v2.0               ║
-║     "Not just what you say — but what you MEAN."                    ║
-║     Built with 3 Transformer Models + Rule-Based Psychology         ║
-║     Detects: Emotion • Sarcasm • Risk • Hidden Distress             ║
-╚══════════════════════════════════════════════════════════════════════╝
-```
-
-SENTINEX is an advanced **NLP-powered Mental Health Analysis AI** that goes beyond surface-level sentiment. It understands **sarcasm**, detects **psychological markers**, tracks **session mood trends**, and delivers a precise **4-tier risk assessment** — from 🟢 LOW to 🔴 CRITICAL.
-
-> Most AI tools see *what you say*. SENTINEX sees *what you mean.*
-
----
-
-## 😔 PROBLEM STATEMENT
-
-Most sentiment analysis tools fail at detecting **masked depression** — when someone says *"I'm fine"* but isn't. Traditional NLP misses:
-
-- Sarcasm hiding real pain — *"Best week ever!"* after losing a job
-- Hidden psychological distress markers — *"cry myself to sleep"*
-- Gradual mood deterioration across a conversation
-- The gap between expressed positivity and underlying suffering
-
-**SENTINEX solves this** using a multi-model fusion approach with rule-based psychology layers.
-
----
-
-## ⚡ CORE FEATURES
-
-| Feature | Description |
-|---------|-------------|
-| 🎭 **Sarcasm Engine** | Detects masked negativity — *"Best week ever"* → SARCASM DETECTED |
-| 😢 **7-Class Emotion** | Sadness, Joy, Fear, Anger, Disgust, Surprise, Neutral |
-| 🧬 **Psych Markers** | Hopelessness, Isolation, Self-Blame, Sleep Issues, Pessimism, Dissociation |
-| 📈 **Context Memory** | Tracks last 10 messages — escalating sadness triggers automatic risk boost |
-| 🚨 **4-Tier Risk System** | LOW → MODERATE → HIGH → CRITICAL with crisis helpline resources |
-| 💬 **Session History** | Visual mood timeline with trend analysis across entire conversation |
-| 🔍 **Critical Phrase Detection** | Flags phrases like "cry myself to sleep", "no reason to live" instantly |
-
----
-
-## 🚨 RISK LEVEL SYSTEM
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                                                                 │
-│  🟢  LOW      Score: 0.00–0.30  "You seem to be doing well!"   │
-│  🟡  MODERATE Score: 0.30–0.55  "Some stress detected."        │
-│  🟠  HIGH     Score: 0.55–0.75  "Please seek support."         │
-│  🔴  CRITICAL Score: 0.75–1.00  "Immediate help needed."       │
-│                        iCall India: 9152987821                  │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
+```text
+browser session
+  ├─ submitted text ──> stateless analyzer ──> structured display
+  └─ aggregate state <── labels, scores, match counts, mode (max 10)
+                              │
+                              ├─ demo (default): deterministic SHA-256 fixture, offline
+                              └─ transformers (opt-in): two pinned classifier adapters
 ```
 
----
+The UI is import-safe: importing `app` neither starts a server nor initializes models. The
+transformer backend is initialized lazily after a request and serializes access to its pipelines.
 
-## 🧠 ARCHITECTURE
+## Run the verified demo
 
-```
-INPUT TEXT
-    │
-    ▼
-┌──────────────────────────────────────────────────────┐
-│                  SENTINEX PIPELINE                   │
-│                                                      │
-│   ┌──────────────┐        ┌───────────────┐         │
-│   │   Emotion    │        │   Sentiment   │         │
-│   │DistilRoBERTa │        │ Twitter-RoBERTa│         │
-│   │  7 classes   │        │  POS/NEG/NEU  │         │
-│   └──────┬───────┘        └──────┬────────┘         │
-│          │                       │                  │
-│   ┌──────▼───────┐        ┌──────▼────────┐         │
-│   │   Sarcasm    │        │  Psych Marker │         │
-│   │ RoBERTa-POS  │        │    Scanner    │         │
-│   │ + Rule Engine│        │  6 categories │         │
-│   └──────┬───────┘        └──────┬────────┘         │
-│          │                       │                  │
-│          └──────────┬────────────┘                  │
-│                     ▼                               │
-│          ┌──────────────────┐                       │
-│          │   Risk Scorer    │                       │
-│          │  Context Memory  │ ← Last 10 messages    │
-│          │  Critical Phrases│                       │
-│          └──────────┬───────┘                       │
-│                     ▼                               │
-│   🟢 LOW / 🟡 MODERATE / 🟠 HIGH / 🔴 CRITICAL      │
-└──────────────────────────────────────────────────────┘
-```
+Requires Python 3.11–3.13.
 
----
-
-## 🤖 MODELS USED
-
-| Model | Purpose | Parameters |
-|-------|---------|------------|
-| `j-hartmann/emotion-english-distilroberta-base` | 7-class Emotion Detection | 82M |
-| `cardiffnlp/twitter-roberta-base-sentiment-latest` | Sentiment Analysis | 125M |
-| `jkhan447/sarcasm-detection-RoBerta-base-POS` | Sarcasm Detection | 125M |
-
-> All models downloaded automatically from HuggingFace Hub on first run (~1.5GB total).
-
----
-
-## 📁 PROJECT STRUCTURE
-
-```
-sentinex/
-├── app.py                  ← Gradio web interface
-├── models/
-│   ├── __init__.py
-│   └── analyzer.py         ← Core SENTINEX engine (risk scorer, psych markers, sarcasm)
-├── requirements.txt        ← Python dependencies
-├── Dockerfile              ← HuggingFace Docker deployment
-└── README.md               ← You are here
-```
-
----
-
-## 🛠️ INSTALLATION
-
-### Prerequisites
-- Python 3.9+
-- pip
-- Git
-
-### Step 1 — Clone the Repository
 ```bash
-git clone https://github.com/siddhantchandorkar752-ai/sentinex-mental-health-ai.git
-cd sentinex-mental-health-ai
-```
-
-### Step 2 — Create Virtual Environment
-```bash
-# Windows
-python -m venv venv
-venv\Scripts\activate
-
-# Linux / Mac
-python3 -m venv venv
-source venv/bin/activate
-```
-
-### Step 3 — Install Dependencies
-```bash
-pip install transformers torch gradio scipy
-```
-
-> ⚠️ First run downloads ~1.5GB of transformer models automatically. Subsequent runs use cache.
-
----
-
-## 🚀 USAGE
-
-### Run Locally
-```bash
+python -m venv .venv
+# Windows: .venv\Scripts\activate
+# macOS/Linux: source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -e ".[ui]"
 python app.py
 ```
-Open browser at: **http://127.0.0.1:7860**
 
-### Run with Docker
+Open <http://127.0.0.1:7860>. `SENTINEX_MODE=demo` is the safe default and makes no model-network
+requests.
+
+## Optional pinned transformer mode
+
+This mode downloads model weights from Hugging Face and can require substantial memory. Its output
+remains non-clinical and unvalidated.
+
+```bash
+python -m pip install -e ".[ui,models]"
+# Windows PowerShell
+$env:SENTINEX_MODE = "transformers"
+python app.py
+```
+
+Pinned models:
+
+- Emotion: `j-hartmann/emotion-english-distilroberta-base` at
+  `0e1cd914e3d46199ed785853e12b57304e04178b`
+- Sentiment: `cardiffnlp/twitter-roberta-base-sentiment-latest` at
+  `3216a57f2a0d9c45a2e6c20157c20c49fb4bf9c7`
+
+The previous sarcasm model was removed because its published configuration did not define a label
+mapping. Treating generic `LABEL_0`/`LABEL_1` values as “sarcasm” would be an unsupported semantic
+claim. Contrast-related wording remains visible only as a literal-match category.
+
+## Test and audit
+
+```bash
+python -m pip install -e ".[ui,dev,security]"
+python -m ruff format --check .
+python -m ruff check .
+python -m pytest
+python -m pip check
+python -m pip_audit --local --skip-editable
+```
+
+CI runs lint, compilation, and offline tests on Python 3.11, 3.12, and 3.13; audits installed UI
+dependencies; and inspects a source-only wheel. See [`SECURITY.md`](SECURITY.md) for private
+reporting guidance.
+
+## Docker
+
 ```bash
 docker build -t sentinex .
-docker run -p 7860:7860 sentinex
+docker run --rm -p 7860:7860 sentinex
 ```
 
-### Use Online — No Installation Required
-[![Live Demo](https://img.shields.io/badge/🚀_Try_SENTINEX_Live-HuggingFace-FFD700?style=for-the-badge)](https://huggingface.co/spaces/siddhantchandorkar/sentinex-mental-health-ai)
-
----
-
-## 🧪 EXAMPLE OUTPUT
-
-```
-Input:
-  "I finally got everything I wanted. Nice house, good job, great friends.
-   So why do I still cry myself to sleep every night?"
-
-─────────────────────────────────────────────
-SENTINEX ANALYSIS REPORT
-─────────────────────────────────────────────
-Emotion:        NEUTRAL 45% | JOY 29% | SADNESS 6%
-Sentiment:      POSITIVE (0.91) ← surface level
-Sarcasm:        Not detected
-
-Psychological Markers Detected:
-  • SLEEP     → "cry myself to sleep"
-  • PESSIMISM → "why do i still"
-
-Risk Score:     0.567 / 1.0
-Risk Level:     🟠 HIGH
-Advice:         High distress detected. Please talk to a counselor.
-─────────────────────────────────────────────
-```
-
-> Notice: Surface sentiment says POSITIVE — but SENTINEX correctly flags HIGH risk via psych markers. This is SENTINEX's core strength.
-
----
-
-## 📊 TEST RESULTS
-
-| Input | Expected | SENTINEX Output | Result |
-|-------|----------|-----------------|--------|
-| *"Best week ever! Lost job, cat died..."* | HIGH + SARCASM | 🟠 HIGH + SARCASM DETECTED | ✅ PASS |
-| *"Got everything... why do I cry myself to sleep?"* | HIGH | 🟠 HIGH + SLEEP + PESSIMISM markers | ✅ PASS |
-| *"Got my dream job! Years of hard work paid off!"* | LOW | 🟢 LOW + JOY 90% | ✅ PASS |
-| *"Nobody understands. It's all my fault. Can't sleep."* | CRITICAL | 🔴 CRITICAL + 3 psych markers | ✅ PASS |
-| *"Went to market, cooked dinner, watched TV."* | LOW | 🟢 LOW + NEUTRAL | ✅ PASS |
-
-**Overall Accuracy: 5/5 test cases passed ✅**
-
----
-
-## 🔮 FUTURE IMPROVEMENTS
-
-- [ ] Voice input — audio → text → SENTINEX pipeline
-- [ ] Multilingual support (Hindi, Spanish, French)
-- [ ] Fine-tuned custom model on clinical mental health datasets
-- [ ] Long-term user trend tracking with database storage
-- [ ] Therapist dashboard with exportable session reports
-- [ ] Mobile app integration (React Native)
-- [ ] Real-time chat monitoring API
-
----
-
-## 🛠️ TECH STACK
-
-![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)
-![HuggingFace](https://img.shields.io/badge/Transformers-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black)
-![Gradio](https://img.shields.io/badge/Gradio-87CEEB?style=for-the-badge)
-![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
-![NLP](https://img.shields.io/badge/NLP-RoBERTa-4682B4?style=for-the-badge)
-![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white)
-
----
-
-## 🤝 CONTRIBUTING
-
-Contributions are welcome! Here's how:
+The image runs as an unprivileged user and defaults to demo mode. Set transformer mode only when
+you intentionally provide the required compute and model-download access. Build that larger image
+explicitly:
 
 ```bash
-# 1. Fork the repository
-# 2. Create your feature branch
-git checkout -b feature/AmazingFeature
-
-# 3. Commit your changes
-git commit -m 'Add AmazingFeature'
-
-# 4. Push to the branch
-git push origin feature/AmazingFeature
-
-# 5. Open a Pull Request on GitHub
+docker build --build-arg SENTINEX_EXTRAS=ui,models -t sentinex-models .
+docker run --rm -e SENTINEX_MODE=transformers -p 7860:7860 sentinex-models
 ```
 
----
+## Intended and prohibited use
 
-## 📄 LICENSE
+Intended: education, UI experiments, classifier-adapter testing, and non-clinical NLP research
+with synthetic or non-sensitive text.
 
-Distributed under the **MIT License**. See `LICENSE` for more information.
+Prohibited: diagnosis, triage, monitoring a person, emergency response, treatment decisions,
+employment or insurance decisions, or any high-stakes judgment about an individual.
 
----
+## License
 
-## 👨‍💻 AUTHOR
-
-<div align="center">
-
-<img src="https://capsule-render.vercel.app/api?type=rect&color=0:87CEEB,100:FFFDD0&height=60&text=Siddhant%20Chandorkar&fontSize=28&fontColor=1a1a2e&fontAlign=50&fontAlignY=50" width="500"/>
-
-<br/><br/>
-
-[![GitHub](https://img.shields.io/badge/GitHub-siddhantchandorkar752--ai-181717?style=for-the-badge&logo=github)](https://github.com/siddhantchandorkar752-ai)
-[![HuggingFace](https://img.shields.io/badge/HuggingFace-siddhantchandorkar-FFFACD?style=for-the-badge&logo=huggingface&logoColor=black)](https://huggingface.co/siddhantchandorkar)
-
-<br/>
-
-*"I don't just build AI. I build AI that understands humans."*
-
-</div>
-
----
-
-<div align="center">
-
-> ⚠️ **Disclaimer:** SENTINEX is an AI research tool and is **NOT** a substitute for professional mental health care. If you or someone you know is in crisis, please contact a mental health professional immediately.
->
-> 🇮🇳 **iCall India:** 9152987821 &nbsp;|&nbsp; **Vandrevala Foundation:** 1860-2662-345 &nbsp;|&nbsp; **iCall:** 9152987821
-
-<br/>
-
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:FFFDD0,50:B0E0E6,100:87CEEB&height=120&section=footer&text=SENTINEX%20v2.0&fontSize=30&fontColor=1a1a2e&fontAlignY=65&animation=fadeIn" width="100%"/>
-
-</div>
+[MIT](LICENSE) © 2026 Siddhant Chandorkar.

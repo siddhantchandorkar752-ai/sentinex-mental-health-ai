@@ -1,4 +1,1 @@
-﻿transformers
-torch
-gradio
-scipy
+-e .[ui]
